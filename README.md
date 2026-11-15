@@ -1,26 +1,32 @@
-# Gridiron Squares — React + MongoDB Atlas
+# Gridiron Squares — Vercel + MongoDB Atlas
 
-Includes React 18, React Router 6, Create React App (`react-scripts`), Express, Mongoose, and MongoDB Atlas persistence. Mobile displays 3 columns at a time with arrow navigation; NFC row numbers remain visible.
+This project contains a Create React App frontend and an Express/Mongoose API. Both can deploy to **one Vercel project**. MongoDB Atlas hosts the data.
 
-## Setup
+## Setup Atlas
+1. In Atlas, open project **Squares**, cluster **Cluster0**, then **Connect > Drivers** and copy your complete `mongodb+srv://...` URI.
+2. **Rotate the database password** previously shared in chat. URL-encode special characters in the new password.
+3. Set the URI's database path to `/squares` (or your intended database name).
+4. Configure Atlas Network Access to allow connections from Vercel. Vercel's standard serverless outbound IPs are dynamic. If you temporarily use `0.0.0.0/0`, it opens network access from any IP: use a dedicated least-privilege database user and strong password, and consider a restricted networking option for production.
 
-1. In MongoDB Atlas project **Squares**, open cluster **Cluster0** → **Connect** → **Drivers** and copy the full `mongodb+srv://...` connection string. **Cluster0 alone is not the hostname.**
-2. Rotate the database user's password because the previous one was shared in a chat. Create `server/.env` by copying `server/.env.example`. Paste your real hostname and URL-encoded **new** password in `MONGODB_URI`. If using the username `iamjfz`, ensure it has read/write access to the database `squares`.
-3. In Atlas → Network Access, allow the IP address of your backend host (for local development, your current public IP). Do not use 0.0.0.0/0 unless necessary and protected.
-4. Backend terminal: `cd server && npm install && npm run dev`.
-5. Frontend terminal (project root): `npm install && npm start`. Open http://localhost:3000.
+## Local development
+1. Run `npm install` in the repository root (installs frontend and API dependencies).
+2. Copy `server/.env.example` to `server/.env`, and replace placeholders with your Atlas connection URI.
+3. Copy `.env.example` to `.env` for the React dev server, or set `REACT_APP_API_URL=http://localhost:5000/api`.
+4. Terminal A: `npm run server:dev` (API on port 5000).
+5. Terminal B: `npm start` (React on port 3000).
 
-API health check: http://localhost:5000/api/health
+## Deploy to Vercel
+1. Push this repository to GitHub, excluding `.env` files.
+2. Import the repo in Vercel. Root directory: repository root. Framework: Create React App.
+3. In Vercel > Project Settings > Environment Variables, add `MONGODB_URI` containing your **complete new** Atlas connection URI. Set for Production (and Preview if wanted). Do not set `REACT_APP_API_URL` in Vercel; frontend requests use relative `/api` URLs.
+4. Deploy. Test `/api/health`, then `/api/pools` (JSON), then `/create`, `/pools`, and `/pool/<id>`.
+5. Any changes to environment variables require redeployment.
 
-## Deployment
+The `vercel.json` API rewrite sends `/api/pools/...` to the serverless function, preserving the route in a `route` query parameter. The function restores the Express path before dispatch. SPA fallback routes React pages to `index.html`.
 
-Deploy the React build and Express backend separately. Set `MONGODB_URI` only on the backend, `CLIENT_ORIGIN` to your deployed frontend origin, and `REACT_APP_API_URL` to your deployed backend `/api` URL **before building** the frontend. Never put the MongoDB connection string in `REACT_APP_*` variables.
-
-## Important limitations
-
-- This is a shared-data MVP. Everyone can view pools, and anyone with a link can claim an available square. **There is no authentication, owner verification, or admin authorization.** Do not deploy publicly without adding those controls.
-- The Shuffle Numbers endpoint is not restricted to pool owners yet. Disable it or implement authorization before production.
-- Claimed squares cannot be changed through this starter API. This prevents unauthorized overwrites; add an authenticated administrator workflow for corrections.
-- Frontend refreshes pool data every 8 seconds; atomic MongoDB updates prevent double claims.
-- Previously saved browser `localStorage` pools are not migrated automatically.
-- There is no payment handling or automatic live NFL scoring.
+## Security and limitations
+- No database secrets are included in this archive. Never commit `.env` or paste connection credentials into frontend code.
+- **This is not ready for unrestricted public use**: there is no user authentication or pool-admin authorization. Anyone with access to the site can create pools or shuffle numbers. Add login and owner authorization before inviting untrusted users.
+- Square claims use an atomic conditional MongoDB update to prevent duplicate claims. The frontend refreshes every 8 seconds.
+- Rate limiting is per function instance and is not a substitute for centralized rate limiting in a production serverless deployment.
+- The app has not been connected to your live Atlas database; you must configure your real Atlas hostname and credentials in Vercel.

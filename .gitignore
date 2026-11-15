@@ -1,6 +1,11 @@
 node_modules/
 server/node_modules/
 .env
-.env.local
+.env.*
+!.env.example
+!server/.env.example
 server/.env
 build/
+dist/
+.vercel/
+*.log

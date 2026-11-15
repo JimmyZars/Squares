@@ -1,4 +1,4 @@
-const BASE=process.env.REACT_APP_API_URL||'http://localhost:5000/api';
+const BASE=process.env.REACT_APP_API_URL||'/api';
 async function call(path,options={}){let response;try{response=await fetch(BASE+path,{...options,headers:{'Content-Type':'application/json',...options.headers}})}catch{throw Error('Cannot connect to the API. Is the backend running?')}const data=await response.json().catch(()=>({}));if(!response.ok)throw Error(data.error||'Request failed');return data}
 export const listPools=()=>call('/pools');
 export const getPool=id=>call('/pools/'+encodeURIComponent(id));
