@@ -1,6 +1,8 @@
 const router=require('express').Router();
 const mongoose=require('mongoose');const Pool=require('../models/Pool');
 const validId=id=>mongoose.isValidObjectId(id);
+const { requireAuth } = require('../auth');
+const User = require('../models/User');
 router.get('/',async(req,res,next)=>{try{res.json(await Pool.find().sort({createdAt:-1}).limit(100))}catch(e){next(e)}});
 router.post('/',async(req,res,next)=>{try{
  const {name,home,away,price}=req.body||{};
@@ -8,8 +10,11 @@ router.post('/',async(req,res,next)=>{try{
  const pool=await Pool.create({name:name.trim(),home:home.trim(),away:away.trim(),price});res.status(201).json(pool)
 }catch(e){next(e)}});
 router.get('/:id',async(req,res,next)=>{try{if(!validId(req.params.id))return res.status(400).json({error:'Invalid ID'});const p=await Pool.findById(req.params.id);if(!p)return res.status(404).json({error:'Pool not found'});res.json(p)}catch(e){next(e)}});
-router.patch('/:id/squares/:index',async(req,res,next)=>{try{
- const index=Number(req.params.index),owner=req.body?.owner;
+router.patch('/:id/squares/:index',requireAuth,async(req,res,next)=>{try{
+ const index=Number(req.params.index);
+ const user=await User.findById(req.userId);
+ if(!user)return res.status(401).json({error:'Please log in again'});
+ const owner=user.email;
  if(!validId(req.params.id)||!Number.isInteger(index)||index<0||index>=100||typeof owner!=='string'||!owner.trim()||owner.length>40)return res.status(400).json({error:'Invalid square claim'});
  const field=`squares.${index}`;
  const pool=await Pool.findOneAndUpdate({_id:req.params.id,[field]:null},{$set:{[field]:owner.trim()}},{new:true,runValidators:true});

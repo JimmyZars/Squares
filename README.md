@@ -1,17 +1,35 @@
-# EasyPools
+# EasyPools — React, MongoDB Atlas, Vercel, and accounts
 
-A React + Express + MongoDB Atlas squares-pool application, deployable to Vercel.
+## What changed
+- Email/password registration and login, with bcrypt-hashed passwords (never plaintext).
+- Optional Google sign-in using Google Identity Services, verified server-side.
+- MongoDB `users` collection stores **email** and **password hash** only, plus MongoDB's `_id`. Google-only users have `password: null`. No Google tokens or profile data are stored.
+- HttpOnly, SameSite=Lax session cookie (signed JWT); no JWT in localStorage.
+- Square claiming requires login and is recorded under the signed-in email; old claims by participant name remain visible and searchable.
+- Login/Register links in navigation; My Squares automatically searches signed-in email.
 
-## New: My Squares
+## Install locally
+1. `npm install` in the project root.
+2. Copy `server/.env.example` to `server/.env` and fill in your MongoDB Atlas URI and a long random `JWT_SECRET` (e.g. `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`).
+3. `npm run server:dev` in one terminal, `npm start` in another.
+4. Set `REACT_APP_API_URL=http://localhost:5000/api` in root `.env.local` for local development (CRA frontend runs on port 3000). Set `REACT_APP_GOOGLE_CLIENT_ID` there to enable Google sign-in.
 
-Open any pool and select **My Squares**. Enter the exact participant name used to claim squares (case-insensitive). The page lists each matching square, row/column, and current top/side team numbers, plus a total. It refreshes every 8 seconds. This is a public name lookup, **not** user authentication or proof of ownership.
+## Deploy to Vercel
+1. Push code to GitHub; keep all real `.env` files out of Git.
+2. Deploy repo root as Create React App on Vercel.
+3. Set Vercel environment variables:
+   - `MONGODB_URI`: full Atlas URI including `/squares` database
+   - `JWT_SECRET`: long random secret, identical across function invocations
+   - `GOOGLE_CLIENT_ID`: Google OAuth **Web application** client ID (optional)
+   - `REACT_APP_GOOGLE_CLIENT_ID`: same Google client ID (optional, used by React build)
+4. Redeploy after adding environment variables. Test `/api/health`, `/api/auth/me` (401 when signed out), and `/api/pools`.
+5. To enable Google sign-in, create an OAuth 2.0 Client ID of type **Web application** in Google Cloud Console. Configure Authorized JavaScript origins including `https://squares-snowy.vercel.app` (and `http://localhost:3000` for local testing). Google Identity Services sends an ID token to the backend, which verifies its signature, audience, and verified email. You may need to configure the OAuth consent screen. If not configured, email/password login still works.
+6. MongoDB Atlas Network Access must permit Vercel egress. Prefer restricted egress where feasible. If testing with `0.0.0.0/0`, use strong limited-privilege database credentials.
 
-## Deploy
-
-1. Add `MONGODB_URI` to Vercel project environment variables (never commit credentials).
-2. Deploy the repository root using the included `vercel.json`.
-3. Verify `/api/health` and `/api/pools` before creating pools.
-
-For local development, set `server/.env` from `server/.env.example`, run `npm install`, then `npm run server:dev` and `npm start` in separate terminals. Set `REACT_APP_API_URL=http://localhost:5000/api` in a local root `.env` if using the separate dev server.
-
-Note: Shuffle Numbers is currently unauthenticated and must be restricted before public use.
+## Notes and limits
+- Existing pools and old participant-name square claims are preserved. Old claims aren't automatically assigned to new accounts; signed-in users can search them by the old name.
+- Google-only accounts have no password and must use Google to log in. A verified Google email matching an existing email/password account signs into that same account.
+- This is a starter auth implementation: before a public launch, add email verification, password reset, account recovery, and stronger authorization for pool creation/shuffling. **Shuffle is still not restricted to the pool creator.**
+- No payment processing is included.
+- If you previously shared your Atlas password, rotate it and never commit it.
+- Frontend build was not fully validated in this environment; run `npm install && npm run build` before deploying.

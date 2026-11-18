@@ -40,3 +40,9 @@
 .my-square-scores small{font-size:11px;color:#b6c8c1;overflow-wrap:anywhere}
 .my-square-scores b{font-size:26px;color:#b7ed4e}
 @media(max-width:600px){.my-squares-search form{flex-direction:column}.my-squares-search button{width:100%}.my-squares-list{grid-template-columns:1fr}}
+/* Authentication */
+.auth-card{max-width:520px;margin:0 auto 60px}
+.auth-card small,.auth-hint{color:#a5b5c4;font-size:12px}
+.auth-divider{text-align:center;color:#a5b5c4;margin:8px 0}
+.google-signin{display:flex;justify-content:center;min-height:42px}
+.nav-user{color:#b7ed4e;font-size:12px;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
