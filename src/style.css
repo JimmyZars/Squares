@@ -20,3 +20,23 @@
   .board.board-mobile .rownum{grid-column:2;font-size:13px}
   .board.board-mobile .corner{grid-column:2}
 }
+
+/* My Squares lookup */
+.my-squares-search{background:#132338;border:1px solid #304056;border-radius:12px;padding:24px;margin-bottom:25px;max-width:760px}
+.my-squares-search form{display:flex;gap:12px;align-items:stretch}
+.my-squares-search input{margin:0;flex:1}
+.my-squares-search label{margin-bottom:10px}
+.my-squares-search p{color:#95a5b6;font-size:12px;line-height:1.6;margin-bottom:0}
+.my-squares-summary{display:flex;gap:40px;margin:22px 0 26px;flex-wrap:wrap}
+.my-squares-summary>div{display:flex;flex-direction:column;gap:6px}
+.my-squares-summary strong{font-size:30px;font-family:'Barlow Condensed',sans-serif;color:#b7ed4e}
+.my-squares-summary span{font-size:12px;color:#a5b5c4}
+.my-squares-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px}
+.my-square-card{background:#132338;border:1px solid #304056;border-radius:10px;padding:20px;display:flex;flex-direction:column;gap:18px}
+.my-square-label{display:flex;flex-direction:column;gap:8px}
+.my-square-label strong{font-size:17px}
+.my-square-scores{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.my-square-scores>div{background:#203c36;border-radius:8px;padding:12px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.my-square-scores small{font-size:11px;color:#b6c8c1;overflow-wrap:anywhere}
+.my-square-scores b{font-size:26px;color:#b7ed4e}
+@media(max-width:600px){.my-squares-search form{flex-direction:column}.my-squares-search button{width:100%}.my-squares-list{grid-template-columns:1fr}}
