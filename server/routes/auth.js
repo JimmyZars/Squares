@@ -2,7 +2,13 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
-const { setSession, clearSession, requireAuth } = require('../auth');
+const { setSession, clearSession, requireAuth, sessionConfigured } = require('../auth');
+// Check session configuration before writing a new account or attempting login.
+router.use((req, res, next) => {
+  if (req.path === '/logout') return next();
+  if (!sessionConfigured()) return res.status(503).json({ error: 'Login is temporarily unavailable. Configure JWT_SECRET on the server and redeploy.' });
+  next();
+});
 const validEmail = e => typeof e === 'string' && e.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 const normalize = e => e.trim().toLowerCase();
 const publicUser = user => ({ id: String(user._id), email: user.email });

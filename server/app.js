@@ -34,7 +34,7 @@ async function connectDB() {
   }
   await connecting;
 }
-app.get('/api/health', (_req, res) => res.json({ ok: true }));
+app.get('/api/health', (_req, res) => res.json({ ok: true, authConfigured: require('./auth').sessionConfigured(), databaseUriConfigured: Boolean(process.env.MONGODB_URI) }));
 app.use('/api/auth', async (_req,res,next) => {
   try { await connectDB(); next(); }
   catch (err) { console.error('Database unavailable:', err.message); res.status(503).json({ error: 'Database unavailable' }); }
@@ -44,5 +44,9 @@ app.use('/api/pools', async (_req, res, next) => {
   catch (err) { console.error('Database unavailable:', err.message); res.status(503).json({ error: 'Database unavailable' }); }
 }, require('./routes/pools'));
 app.use('/api', (_req, res) => res.status(404).json({ error: 'API route not found' }));
-app.use((err, _req, res, _next) => { console.error(err); res.status(500).json({ error: 'Server error' }); });
+app.use((err, _req, res, _next) => {
+  console.error('API error:', err?.name, err?.message);
+  if (res.headersSent) return;
+  res.status(500).json({ error: 'Server error. Check Vercel function logs.' });
+});
 module.exports = { app, connectDB };

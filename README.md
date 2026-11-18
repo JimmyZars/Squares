@@ -40,3 +40,12 @@
 Creating pools and listing **My Pools** require an authenticated session. The API saves the authenticated user's MongoDB ObjectId in each pool's `owner` field, and `GET /api/pools` returns only pools owned by that user. Pool URLs remain shareable so participants can claim squares; only the pool owner may shuffle numbers.
 
 **Existing pools:** Pools created before this update do not have an `owner` field and will not appear under My Pools. Do not assign ownership based on unverified claims. An administrator should verify and migrate any legacy pools manually before applying stricter schema changes.
+
+
+## Login / registration troubleshooting
+
+**Required on Vercel:** `MONGODB_URI` and `JWT_SECRET` must be set in Project → Settings → Environment Variables for the **Production** environment. Set `JWT_SECRET` to at least 32 random characters (e.g. generate locally using `node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"`). Redeploy after changing variables. Never commit either secret.
+
+Open `/api/health` on your deployed site. `authConfigured: true` means the JWT secret is present and sufficiently long; `databaseUriConfigured: true` means the URI exists, **not** that MongoDB is reachable. If register/login still fails, check Vercel Function logs for the error; ensure MongoDB Atlas network access, database username/password, and URI encoding are correct.
+
+This update prevents creation of a user account when the JWT secret is absent. It cannot set your Vercel environment variables automatically. Rotate any database credentials previously shared in chat.
