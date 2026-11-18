@@ -1,5 +1,6 @@
 const mongoose=require('mongoose');
 const PoolSchema=new mongoose.Schema({
+ owner:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},
  name:{type:String,required:true,maxlength:80,trim:true},
  home:{type:String,required:true,maxlength:45},away:{type:String,required:true,maxlength:45},
  price:{type:Number,required:true,min:0,max:100000},

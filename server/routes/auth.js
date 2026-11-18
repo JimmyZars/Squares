@@ -5,7 +5,7 @@ const User = require('../models/User');
 const { setSession, clearSession, requireAuth } = require('../auth');
 const validEmail = e => typeof e === 'string' && e.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 const normalize = e => e.trim().toLowerCase();
-const publicUser = user => ({ email: user.email });
+const publicUser = user => ({ id: String(user._id), email: user.email });
 router.post('/register', async (req, res, next) => {
   try {
     const { email, password } = req.body || {};

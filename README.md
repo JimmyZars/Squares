@@ -33,3 +33,10 @@
 - No payment processing is included.
 - If you previously shared your Atlas password, rotate it and never commit it.
 - Frontend build was not fully validated in this environment; run `npm install && npm run build` before deploying.
+
+
+## Pool ownership
+
+Creating pools and listing **My Pools** require an authenticated session. The API saves the authenticated user's MongoDB ObjectId in each pool's `owner` field, and `GET /api/pools` returns only pools owned by that user. Pool URLs remain shareable so participants can claim squares; only the pool owner may shuffle numbers.
+
+**Existing pools:** Pools created before this update do not have an `owner` field and will not appear under My Pools. Do not assign ownership based on unverified claims. An administrator should verify and migrate any legacy pools manually before applying stricter schema changes.
