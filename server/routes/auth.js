@@ -11,14 +11,16 @@ router.use((req, res, next) => {
 });
 const validEmail = e => typeof e === 'string' && e.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
 const normalize = e => e.trim().toLowerCase();
-const publicUser = user => ({ id: String(user._id), email: user.email });
+const publicUser = user => ({ id: String(user._id), email: user.email, firstName: user.firstName || '', lastName: user.lastName || '' });
+const validName = name => typeof name === 'string' && /^[\p{L}][\p{L} '\-]{0,49}$/u.test(name.trim());
 router.post('/register', async (req, res, next) => {
   try {
-    const { email, password } = req.body || {};
-    if (!validEmail(email) || typeof password !== 'string' || password.length < 12 || password.length > 128)
-      return res.status(400).json({ error: 'Enter a valid email and a password of 12–128 characters' });
+    const { email, password, firstName, lastName } = req.body || {};
+    if (!validName(firstName) || !validName(lastName)) return res.status(400).json({ error: "Enter a valid first and last name" });
+    if (!validEmail(email) || typeof password !== 'string' || password.length < 8 || password.length > 128)
+      return res.status(400).json({ error: 'Enter a valid email and a password of 8–128 characters' });
     const hash = await bcrypt.hash(password, 12);
-    const user = await User.create({ email: normalize(email), password: hash });
+    const user = await User.create({ email: normalize(email), password: hash, firstName: firstName.trim(), lastName: lastName.trim() });
     setSession(res, user); res.status(201).json({ user: publicUser(user) });
   } catch (e) {
     if (e.code === 11000) return res.status(409).json({ error: 'This email is already registered. Try signing in.' });
@@ -50,7 +52,7 @@ router.post('/google', async (req, res, next) => {
     // No Google token, provider ID, or other profile fields are persisted.
     let user = await User.findOne({ email });
     if (!user) {
-      try { user = await User.create({ email, password: null }); }
+      try { user = await User.create({ email, password: null, firstName: (payload.given_name || "").slice(0,50), lastName: (payload.family_name || "").slice(0,50) }); }
       catch (e) { if (e.code !== 11000) throw e; user = await User.findOne({ email }); }
     }
     setSession(res, user); res.json({ user: publicUser(user) });

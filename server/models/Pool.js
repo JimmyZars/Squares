@@ -2,6 +2,8 @@ const mongoose=require('mongoose');
 const PoolSchema=new mongoose.Schema({
  owner:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},
  members:{type:[mongoose.Schema.Types.ObjectId],default:[]},
+ memberLabels:{type:[{user:{type:mongoose.Schema.Types.ObjectId,required:true},label:{type:String,required:true}}],default:[]},
+ squareUsers:{type:[mongoose.Schema.Types.ObjectId],default:()=>Array(100).fill(null)},
  passwordHash:{type:String,default:null,select:false},
  name:{type:String,required:true,maxlength:80,trim:true},
  home:{type:String,required:true,maxlength:45},away:{type:String,required:true,maxlength:45},

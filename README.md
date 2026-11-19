@@ -63,3 +63,11 @@ This update prevents creation of a user account when the JWT secret is absent. I
 ### Production notes
 
 Pool-name search is available to authenticated users and reveals pool names and matchups. Do not put sensitive details in pool names. For a public production deployment, add a password-attempt rate limit per account/pool and consider anti-enumeration controls; the general API rate limit is not a substitute for targeted protections. The project continues to require `MONGODB_URI` and `JWT_SECRET` configured in Vercel.
+
+
+## Names and square initials
+New email registrations require first and last name; passwords require at least 8 characters. Google sign-in uses the verified Google profile given/family name when available. Existing accounts may have blank names; their initials fall back to their email local part and X until updated.
+
+For each pool, the first member with a given pair of initials gets two letters (e.g. JS). If a subsequent member has the same pair, they receive the first two letters of each name (e.g. JOSM). If those four letters also collide, a numeric suffix is appended. Initials are fixed per membership and stored in `memberLabels`. New square claims save the display label in `squares` and the user ID in `squareUsers` so My Squares identifies owners reliably. Historical claims remain as they were; this update does not automatically reassign legacy claims.
+
+Pool passwords are optional, but nonempty passwords must be 8–72 characters. Database credentials and JWT secrets must stay in server-side environment variables.
