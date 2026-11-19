@@ -46,3 +46,10 @@
 .auth-divider{text-align:center;color:#a5b5c4;margin:8px 0}
 .google-signin{display:flex;justify-content:center;min-height:42px}
 .nav-user{color:#b7ed4e;font-size:12px;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* Join pools */
+.join-search{max-width:720px;margin-bottom:24px}
+.join-card{display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.join-card .overline{display:inline-flex;align-items:center;gap:7px}
+.join-subheading{margin:30px 0 16px}
+.field-help{font-size:.85rem;opacity:.75;margin-top:-6px}

@@ -10,3 +10,7 @@ export const login=(email,password)=>call('/auth/login',{method:'POST',body:JSON
 export const register=(email,password)=>call('/auth/register',{method:'POST',body:JSON.stringify({email,password})});
 export const googleLogin=credential=>call('/auth/google',{method:'POST',body:JSON.stringify({credential})});
 export const logout=()=>call('/auth/logout',{method:'POST'});
+
+export const searchPools=q=>call('/pools/search?q='+encodeURIComponent(q));
+export const listJoinedPools=()=>call('/pools/joined');
+export const joinPool=(id,password)=>call('/pools/'+encodeURIComponent(id)+'/join',{method:'POST',body:JSON.stringify({password})});

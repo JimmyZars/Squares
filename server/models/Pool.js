@@ -1,6 +1,8 @@
 const mongoose=require('mongoose');
 const PoolSchema=new mongoose.Schema({
  owner:{type:mongoose.Schema.Types.ObjectId,ref:'User',required:true,index:true},
+ members:{type:[mongoose.Schema.Types.ObjectId],default:[]},
+ passwordHash:{type:String,default:null,select:false},
  name:{type:String,required:true,maxlength:80,trim:true},
  home:{type:String,required:true,maxlength:45},away:{type:String,required:true,maxlength:45},
  price:{type:Number,required:true,min:0,max:100000},
@@ -8,5 +10,5 @@ const PoolSchema=new mongoose.Schema({
  rows:{type:[Number],default:()=>[0,1,2,3,4,5,6,7,8,9]},
  cols:{type:[Number],default:()=>[0,1,2,3,4,5,6,7,8,9]}
 },{timestamps:true});
-PoolSchema.set('toJSON',{transform:(_doc,obj)=>{obj.id=obj._id.toString();delete obj._id;delete obj.__v;return obj}});
+PoolSchema.set('toJSON',{transform:(_doc,obj)=>{obj.id=obj._id.toString();delete obj._id;delete obj.__v;delete obj.passwordHash;obj.isLocked=Boolean(_doc.passwordHash);return obj}});
 module.exports=mongoose.model('Pool',PoolSchema);

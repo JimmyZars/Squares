@@ -49,3 +49,17 @@ Creating pools and listing **My Pools** require an authenticated session. The AP
 Open `/api/health` on your deployed site. `authConfigured: true` means the JWT secret is present and sufficiently long; `databaseUriConfigured: true` means the URI exists, **not** that MongoDB is reachable. If register/login still fails, check Vercel Function logs for the error; ensure MongoDB Atlas network access, database username/password, and URI encoding are correct.
 
 This update prevents creation of a user account when the JWT secret is absent. It cannot set your Vercel environment variables automatically. Rotate any database credentials previously shared in chat.
+
+## Joining pools and optional pool passwords
+
+- Signed-in users can visit **Join a Pool** (`/join`) and search by pool name (2+ characters).
+- Search results show a lock icon for password-protected pools. Open pools can be joined without a password.
+- Creating a pool accepts an optional password; blank passwords create open pools. Pool passwords are **bcrypt-hashed**, never returned in API responses, and stored in the pool document as `passwordHash` (not in user accounts).
+- Joining a pool adds the authenticated user ID to `members` using `$addToSet` to prevent duplicate memberships. Members can view and claim squares; only the creator can shuffle numbers.
+- **My Pools** continues to list only pools the user owns. **Join a Pool** also lists pools they have joined.
+- Existing pools without a `passwordHash` remain open. Their owners retain access automatically; other users can join them from search.
+- A direct pool URL requires an authenticated owner/member. Nonmembers must join first, including when a pool has no password.
+
+### Production notes
+
+Pool-name search is available to authenticated users and reveals pool names and matchups. Do not put sensitive details in pool names. For a public production deployment, add a password-attempt rate limit per account/pool and consider anti-enumeration controls; the general API rate limit is not a substitute for targeted protections. The project continues to require `MONGODB_URI` and `JWT_SECRET` configured in Vercel.
