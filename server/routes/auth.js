@@ -2,6 +2,7 @@ const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const { OAuth2Client } = require('google-auth-library');
 const User = require('../models/User');
+const { finalizeDuePools } = require('../schedule');
 const { setSession, clearSession, requireAuth, sessionConfigured } = require('../auth');
 // Check session configuration before writing a new account or attempting login.
 router.use((req, res, next) => {
@@ -21,6 +22,7 @@ router.post('/register', async (req, res, next) => {
       return res.status(400).json({ error: 'Enter a valid email and a password of 8–128 characters' });
     const hash = await bcrypt.hash(password, 12);
     const user = await User.create({ email: normalize(email), password: hash, firstName: firstName.trim(), lastName: lastName.trim() });
+    await finalizeDuePools();
     setSession(res, user); res.status(201).json({ user: publicUser(user) });
   } catch (e) {
     if (e.code === 11000) return res.status(409).json({ error: 'This email is already registered. Try signing in.' });
@@ -34,6 +36,7 @@ router.post('/login', async (req, res, next) => {
     const user = await User.findOne({ email: normalize(email) }).select('+password');
     if (!user?.password || !(await bcrypt.compare(password, user.password)))
       return res.status(401).json({ error: 'Invalid email or password' });
+    await finalizeDuePools();
     setSession(res, user); res.json({ user: publicUser(user) });
   } catch (e) { next(e); }
 });
@@ -55,6 +58,7 @@ router.post('/google', async (req, res, next) => {
       try { user = await User.create({ email, password: null, firstName: (payload.given_name || "").slice(0,50), lastName: (payload.family_name || "").slice(0,50) }); }
       catch (e) { if (e.code !== 11000) throw e; user = await User.findOne({ email }); }
     }
+    await finalizeDuePools();
     setSession(res, user); res.json({ user: publicUser(user) });
   } catch (e) {
     if (/token|signature|audience|issuer|expired/i.test(e.message)) return res.status(401).json({ error: 'Google sign-in failed' });
@@ -62,7 +66,7 @@ router.post('/google', async (req, res, next) => {
   }
 });
 router.get('/me', requireAuth, async (req, res, next) => {
-  try { const user = await User.findById(req.userId); if (!user) return res.status(401).json({ error: 'Session expired' }); res.json({ user: publicUser(user) }); }
+  try { const user = await User.findById(req.userId); if (!user) return res.status(401).json({ error: 'Session expired' }); await finalizeDuePools(); res.json({ user: publicUser(user) }); }
   catch (e) { next(e); }
 });
 router.post('/logout', (_req, res) => { clearSession(res); res.json({ ok: true }); });

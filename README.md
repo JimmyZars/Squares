@@ -71,3 +71,20 @@ New email registrations require first and last name; passwords require at least 
 For each pool, the first member with a given pair of initials gets two letters (e.g. JS). If a subsequent member has the same pair, they receive the first two letters of each name (e.g. JOSM). If those four letters also collide, a numeric suffix is appended. Initials are fixed per membership and stored in `memberLabels`. New square claims save the display label in `squares` and the user ID in `squareUsers` so My Squares identifies owners reliably. Historical claims remain as they were; this update does not automatically reassign legacy claims.
 
 Pool passwords are optional, but nonempty passwords must be 8–72 characters. Database credentials and JWT secrets must stay in server-side environment variables.
+
+
+## Scheduled randomization and lock
+New pools require a future local date/time. The frontend converts it to UTC before saving. Until the deadline, numbers are shown as `?`. At/after the deadline, the backend cryptographically shuffles both sets of digits using Node `crypto.randomInt` and atomically saves the final numbers; claims are rejected from that time onward. No manual shuffle endpoint exists.
+
+**Scheduling:** The backend finalizes due pools on pool API reads (and blocks claims at the exact deadline). This is reliable on next visit, but the database will not be updated at the exact minute without a scheduler. For automatic background processing, configure an external scheduler to call `GET /api/cron/finalize` with header `Authorization: Bearer <CRON_SECRET>` every minute; set a strong `CRON_SECRET` in Vercel. Vercel Cron can also call this endpoint if your plan supports the desired frequency. Do not publish your secret.
+
+**Existing pools:** Previously created pools have no deadline; this version does not silently change them. Assign `numbersLockAt` for legacy pools in a controlled migration, and decide whether already randomized numbers should be retained.
+
+
+## Competition start / automatic one-time number assignment
+
+When a pool is created, its competition start date/time is saved in `numbersLockAt` (UTC in MongoDB). The AFC/NFC header numbers display `?` until the first successful register, email login, Google login, or authenticated session restoration (`/api/auth/me`) after the start time. That authentication request finalizes all due pools with cryptographically secure Fisher–Yates permutations and an atomic MongoDB compare-and-set. `numbersLockedAt` prevents subsequent changes, including during simultaneous logins.
+
+Square claiming stops at the scheduled competition start time regardless of whether the randomization has happened yet. There is no manual shuffle button or scheduler endpoint. An already-open page refreshes its pool every 8 seconds and will reveal numbers after a qualifying login occurs.
+
+Existing pools without a valid `numbersLockAt` must be migrated to have a future competition start time.
