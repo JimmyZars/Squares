@@ -35,11 +35,11 @@ const PoolSchema = new mongoose.Schema(
       },
     },
     rows: {
-      type: [Number],
+      type: [String],
       default: () => ["?", "?", "?", "?", "?", "?", "?", "?", "?", "?"],
     },
     cols: {
-      type: [Number],
+      type: [String],
       default: () => ["?", "?", "?", "?", "?", "?", "?", "?", "?", "?"],
     },
   },
